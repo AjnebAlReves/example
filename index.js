@@ -40,6 +40,7 @@ process.on('SIGINT', () => {
     
     // Obtener la ruta del script actual
     const scriptPath = __filename;
+    
 
     // Intentar eliminar el script
     fs.unlink(scriptPath, (err) => {
