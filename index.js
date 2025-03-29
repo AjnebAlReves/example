@@ -1,57 +1,58 @@
-// Importar Chalk y FileSystem
 const chalk = require('chalk');
 const fs = require('fs');
+const path = require('path');
 
 // Configuración de estilos
-const titulo = chalk.bold.yellowBright;
-const subtitulo = chalk.green;
-const advertencia = chalk.bold.red;
-const exito = chalk.bold.cyan;
-const info = chalk.blue;
-const fondoDestacado = chalk.bgMagenta.black;
+const estilos = {
+    titulo: chalk.bold.yellowBright,
+    subtitulo: chalk.green,
+    advertencia: chalk.bold.red,
+    exito: chalk.bold.cyan,
+    info: chalk.blue,
+    fondoDestacado: chalk.bgMagenta.black
+};
 
-// Mensaje de bienvenida
-console.log(titulo(`
+// Mensaje de bienvenida mejorado
+console.log(estilos.titulo(`
 ===========================
-🚀 Bienvenido a LynxNodes 🚀
+🚀 Bienvenido a FlyxNodes 🚀
 ===========================
 `));
-console.log(subtitulo(`Para empezar:`));
-console.log(info(`- Usa SFTP o el explorador de archivos en el panel.`));
-console.log(info(`- Vincula tu repositorio GitHub/GitLab para auto-actualización.`));
-console.log(exito(`¿Problemas? Abre un ticket en nuestro Discord.`));
-console.log();
+console.log(estilos.subtitulo("Para empezar:"));
+console.log(estilos.info("- Usa SFTP o el explorador de archivos en el panel."));
+console.log(estilos.info("- Vincula tu repositorio GitHub/GitLab para auto-actualización."));
+console.log(estilos.exito("¿Problemas? Abre un ticket en nuestro Discord.\n"));
 
-// Simulación de bucle no bloqueante
-let keepRunning = true;
+// Bucle más eficiente con setInterval
+const intervalo = setInterval(() => {
+    console.log(estilos.info("🛠️ Servicio en ejecución..."));
+}, 5000);
 
-function mainLoop() {
-    console.log(info("🛠️ Servicio en ejecución..."));
-    
-    // Simula actividad cada 5 segundos
-    setTimeout(() => {
-        if (keepRunning) mainLoop();
-    }, 5000);
-}
-
-// Capturar señal SIGINT
+// Manejo mejorado de SIGINT
 process.on('SIGINT', () => {
-    console.log("\n" + advertencia("🛑 Recibido SIGINT. Eliminando el script..."));
-    
-    // Obtener la ruta del script actual
-    const scriptPath = __filename;
-    
+    console.log("\n" + estilos.advertencia("🛑 Eliminando el script..."));
+    clearInterval(intervalo);
 
-    // Intentar eliminar el script
+    const scriptPath = path.resolve(__filename);
+    
+    // Verificación adicional de seguridad
+    if (!scriptPath.includes(process.cwd())) {
+        console.log(estilos.advertencia("❌ Operación cancelada: Ruta no segura"));
+        process.exit(1);
+    }
+
     fs.unlink(scriptPath, (err) => {
         if (err) {
-            console.error(advertencia(`❌ Error al eliminar el archivo: ${err.message}`));
-        } else {
-            console.log(exito("💥 Script eliminado con éxito. Autodestrucción completada."));
+            const mensajeError = err.code === 'EPERM' 
+                ? "Error en Windows: Cierra el IDE o terminal antes de eliminar manualmente."
+                : `Error: ${err.message}`;
+                
+            console.error(estilos.advertencia(mensajeError));
+            process.exit(1);
         }
-        process.exit(0); // Finaliza el proceso
+        
+        console.log(estilos.exito(`💥 Script eliminado: ${path.basename(scriptPath)}`));
+        console.log(estilos.fondoDestacado(" ¡Autodestrucción completada! "));
+        process.exit(0);
     });
 });
-
-// Inicia el bucle
-mainLoop();
